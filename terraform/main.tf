@@ -5,17 +5,11 @@ provider "aws" {
   skip_credentials_validation = true
   skip_requesting_account_id  = true
   skip_metadata_api_check     = true
-  s3_use_path_style           = true
 
   endpoints {
     lambda = var.lambda_endpoint
-    s3     = var.s3_endpoint
     sqs    = var.sqs_endpoint
   }
-}
-
-resource "aws_s3_bucket" "sqlai_bucket" {
-  bucket = "lambda-functions"
 }
 
 resource "aws_sqs_queue" "training_task_queue" {
@@ -40,8 +34,7 @@ resource "aws_lambda_function" "write_training_data_to_db" {
 
   environment {
     variables = {
-      TRAINING_QUEUE_URL = aws_sqs_queue.training_task_queue.id
-      TRAINING_DLQ_URL = aws_sqs_queue.training_task_dead_letter_queue.id
+      TRAINING_DLQ_URL   = aws_sqs_queue.training_task_dead_letter_queue.id
     }
   }
 
@@ -53,4 +46,5 @@ resource "aws_lambda_function" "write_training_data_to_db" {
 resource "aws_lambda_event_source_mapping" "training_event_source_mapping" {
   event_source_arn = aws_sqs_queue.training_task_queue.arn
   function_name    = aws_lambda_function.write_training_data_to_db.arn
+  batch_size       = 1
 }
