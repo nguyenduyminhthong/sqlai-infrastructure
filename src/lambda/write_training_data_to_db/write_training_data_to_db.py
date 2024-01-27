@@ -16,8 +16,8 @@ def lambda_handler(event, context):
 
             message = json.loads(record["body"])
 
-            logger.info(f"Sending data to {message['host']}/train_model")
-            response = requests.post(f"{message['host']}/train_model", json=message["package"])
+            logger.info(f"Sending data to {message['consumer_host']}/train_model")
+            response = requests.post(f"{message['consumer_host']}/train_model", json=message["package"])
             response.raise_for_status()
 
             logger.info(f"Response: {response.status_code} {response.text}")
